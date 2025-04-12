@@ -1,0 +1,103 @@
+esphome:
+  name: esp32device1
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+mqtt:
+  broker: "192.168.0.226"
+  username: "hudro"
+  password: "eremes2inholl"
+
+logger:
+api:
+  password: "eremes2inholl"
+ota:
+  - platform: esphome
+    password: "eremes2inholl"
+
+wifi:
+  ssid: "HUDNET"
+  password: "7950295123"
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Esp32 Device1 Fallback Hotspot"
+    password: "RQJd4YSv5hWM"
+
+captive_portal:
+    
+web_server:
+  port: 80
+
+# I2C для дисплея
+i2c:
+  sda: GPIO21
+  scl: GPIO22
+  scan: true
+
+# DHT22
+sensor:
+  - platform: dht
+    pin:
+      number: GPIO4
+      mode: INPUT_PULLUP
+    model: DHT22
+    temperature:
+      name: "Температура"
+      id: temp_sensor
+      accuracy_decimals: 2
+      filters:
+        - offset: -0.1
+      state_topic: "esp32/device1/temperature"
+    humidity:
+      name: "Влажность"
+      id: hum_sensor
+      accuracy_decimals: 2
+      filters:
+        - offset: 7
+      state_topic: "esp32/device1/humidity"
+    update_interval: 60s
+
+# OLED дисплей SSD1306
+font:
+  - file: "fonts/BigBlueTerm437NerdFontMono-Regular.ttf"
+    id: font_big
+    size: 24
+    glyphs: "0123456789.C°% "
+
+# Реле для управления нагрузками
+switch:
+  - platform: gpio
+    pin: GPIO12
+    name: "Реле 1"
+    id: relay1
+    restore_mode: RESTORE_DEFAULT_OFF
+    state_topic: "esp32/device1/relay1/state"
+    command_topic: "esp32/device1/relay1/set"
+
+  - platform: gpio
+    pin: GPIO14
+    name: "Реле 2"
+    id: relay2
+    restore_mode: RESTORE_DEFAULT_OFF
+    state_topic: "esp32/device1/relay2/state"
+    command_topic: "esp32/device1/relay2/set"
+
+display:
+  - platform: ssd1306_i2c
+    model: "SH1106 128x64"
+    address: 0x3C
+    update_interval: 5s
+    lambda: |-
+      char temp_str[32];
+      char hum_str[32];
+      float t = id(temp_sensor).state;
+      float h = id(hum_sensor).state;
+      snprintf(temp_str, sizeof(temp_str), "%.2f °C", t);
+      snprintf(hum_str, sizeof(hum_str), "%.2f %%", h);
+      // Теперь передаём строку как параметр к формату "%s"
+      it.printf(64, 16, id(font_big), TextAlign::CENTER, "%s", temp_str);
+      it.printf(64, 44, id(font_big), TextAlign::CENTER, "%s", hum_str);
