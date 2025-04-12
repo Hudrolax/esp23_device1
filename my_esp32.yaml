@@ -8,37 +8,36 @@ esp32:
 
 mqtt:
   broker: "192.168.0.226"
-  username: "hudro"
-  password: "eremes2inholl"
+  username: !env MQTT_USERNAME
+  password: !env MQTT_PASSWORD
 
 logger:
+
 api:
-  password: "eremes2inholl"
+  password: !env API_PASSWORD
+
 ota:
   - platform: esphome
-    password: "eremes2inholl"
+    password: !env OTA_PASSWORD
 
 wifi:
-  ssid: "HUDNET"
-  password: "7950295123"
+  ssid: !env WIFI_SSID
+  password: !env WIFI_PASSWORD
 
-  # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
     ssid: "Esp32 Device1 Fallback Hotspot"
-    password: "RQJd4YSv5hWM"
+    password: !env WIFI_FALLBACK_PASSWORD
 
 captive_portal:
-    
+
 web_server:
   port: 80
 
-# I2C для дисплея
 i2c:
   sda: GPIO21
   scl: GPIO22
   scan: true
 
-# DHT22
 sensor:
   - platform: dht
     pin:
@@ -61,14 +60,12 @@ sensor:
       state_topic: "esp32/device1/humidity"
     update_interval: 60s
 
-# OLED дисплей SSD1306
 font:
   - file: "fonts/BigBlueTerm437NerdFontMono-Regular.ttf"
     id: font_big
     size: 24
     glyphs: "0123456789.C°% "
 
-# Реле для управления нагрузками
 switch:
   - platform: gpio
     pin: GPIO12
@@ -98,6 +95,5 @@ display:
       float h = id(hum_sensor).state;
       snprintf(temp_str, sizeof(temp_str), "%.2f °C", t);
       snprintf(hum_str, sizeof(hum_str), "%.2f %%", h);
-      // Теперь передаём строку как параметр к формату "%s"
       it.printf(64, 16, id(font_big), TextAlign::CENTER, "%s", temp_str);
       it.printf(64, 44, id(font_big), TextAlign::CENTER, "%s", hum_str);
